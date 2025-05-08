@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "modern-data-analytics"
+version = "1.0.0"
+
+dependencies = [
+  "pandas==2.2.3",
+]
+
+requires-python = ">=3.10"
+
+authors = [
+  {name = "David O'Grady", email = "david.ogrady@student.kuleuven.be"},
+  {name = "David Ng", email = "tsunmingdavid.ng@student.kuleuven.be"},
+  {name = "Liren Xie", email = "liren.xie@student.kuleuven.be"},
+]
+
+description = "A visualisation dashboard for Modern Data Analytics Group Assignment"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICEN[CS]E.*"]
+
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+
+[project.optional-dependencies]
+dev = [
+  "mypy",
+  "pre-commit",
+  "ruff",
+
+]
+
+[project.urls]
+Repository = "https://github.com/David-TMNg/Modern_Data_Analytics"
