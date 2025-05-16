@@ -1,4 +1,4 @@
-from shiny import App, ui, reactive
+from shiny import App, ui, reactive, render
 import pandas as pd
 from recommender.matching import get_top_matches
 
@@ -42,7 +42,7 @@ def server(input, output, session):
         matches.set(match_df[["projectID", "title", "fundingScheme", "totalCost", "similarity"]])
 
     # Output the table
-    @output.data_frame
+    @render.data_frame
     def match_table():
         df = matches.get()
         return df if not df.empty else pd.DataFrame({"message": ["Submit a proposal to see matches."]})
