@@ -1,0 +1,28 @@
+Objective
+---------------------------------------------
+Develop an interactive web application that:
+- Accepts a researcher's topic proposal as input.
+- Matches the proposal to existing Horizon projects based on semantic similarity using NLP.
+- Prioritizes matches using both project “objective” text and structured EuroSciVoc topic codes.
+- Returns summary statistics about similar projects (e.g., funding scheme, participant count, funding levels).
+- Allows users to filter results by funding scheme, year, number of partners, or countries involved.
+
+Data & Methodology
+---------------------------------------------
+The application is built on the cleaned and structured Cordis Horizon dataset. 
+Each project record includes textual objectives, SciVoc classifications, funding data, timelines, and organisation involvement.
+Text similarity will be computed using vector embeddings. 
+The EuroSciVoc topics will be represented in a structured encoding (e.g., one-hot), with their importance weighted higher in the similarity computation. 
+Filtering and summary logic will use Pandas and Scikit-Learn pipelines.
+
+Technical Stack
+---------------------------------------------
+- Vectorization & similarity: scikit-learn, sentence-transformers, numpy
+- Backend logic: pandas, scikit-learn, networkx 
+- UI: Shiny for Python (interactive filtering, user input, outputs)
+- Deployment: AWS EC2 or shinyapps.io, with future potential for containerized deployment via Docker
+
+Outcome
+---------------------------------------------
+A researcher-facing web interface that intelligently recommends comparable Horizon projects based on a custom topic idea. 
+This tool provides visibility into relevant funding schemes, historical award sizes, collaboration footprints, and strategic positioning — ultimately supporting better-targeted research proposals.
