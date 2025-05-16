@@ -7,16 +7,13 @@ project_data = pd.read_csv("data_1/processed/project_merged.csv")
 
 # UI
 app_ui = ui.page_sidebar(
-    title="Horizon Europe Project Recommender",
-
-    sidebar=ui.sidebar(
+    ui.sidebar(
         ui.input_text_area("proposal", "Enter your research proposal:", rows=6),
         ui.input_action_button("submit", "Find Matching Projects")
     ),
-
-    main=ui.div(
-        ui.output_data_frame("match_table")
-    )
+    ui.card(ui.output_data_frame("match_table")),
+    title="Horizon Europe Project Recommender",
+    
 )
 
 # Server
