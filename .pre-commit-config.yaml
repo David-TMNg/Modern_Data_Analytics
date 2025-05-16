@@ -1,0 +1,19 @@
+repos:
+-   repo: local
+    hooks:
+
+    - id: ruff_check
+      name: ruff_check
+      entry: ruff
+      description: Ruff check and fix linting
+      language: system
+      types: [ python ]
+      args: ['check', '--fix', '--config', 'pyproject.toml']
+
+    - id: ruff_format
+      name: ruff_format
+      entry: ruff
+      description: Ruff check format
+      language: system
+      types: [ python ]
+      args: ['format', '--config', 'pyproject.toml']

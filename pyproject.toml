@@ -21,7 +21,7 @@ authors = [
 description = "A visualisation dashboard for Modern Data Analytics Group Assignment"
 readme = "README.md"
 license = "MIT"
-license-files = ["LICEN[CS]E.*"]
+license-files = ["LICENSE"]
 
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -41,3 +41,24 @@ dev = [
 
 [project.urls]
 Repository = "https://github.com/David-TMNg/Modern_Data_Analytics"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 120
+indent-width = 4
+target-version = "py310"
+force-exclude = true
+
+[tool.ruff.lint]
+select = ["E4", "E5", "E7", "E9", "F", "I"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
