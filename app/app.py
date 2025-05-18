@@ -1,38 +1,61 @@
 from shiny import App, ui, reactive, render
 import pandas as pd
+import ast
 from recommender.matching import get_top_matches
+from ipyleaflet import Map, Marker, Popup, Icon
 import matplotlib.pyplot as plt
 import seaborn as sns
+from shinywidgets import output_widget, render_widget  
+from ipywidgets import HTML
 
-# Step 1: Load project metadata (merged data)
+
+#Load project data
 project_data = pd.read_csv("data_1/processed/project_merged.csv")
+org_data = pd.read_csv("data_1/processed/org_unique_detailed.csv")
 
 # UI
-app_ui = ui.page_sidebar(
-    ui.sidebar(
-        ui.input_text_area("proposal", "Enter your research proposal:", rows=6),
-        ui.input_slider("top_n", "Number of results to display:", min=10, max=50, value=10),
-        ui.input_action_button("submit", "Find Matching Projects")
-    ),
+app_ui = ui.page_fluid(
+    ui.navset_pill(  
+        ui.nav_panel("Proposal Match",
+                     ui.layout_columns(
+                        ui.card(
+                             ui.input_text_area("proposal", "Enter your research proposal:", rows=6),
+                             ui.input_slider("top_n", "Number of results to display:", min=10, max=20, value=10),
+                             ui.input_action_button("submit", "Find Matching Projects")),
+                        ui.card(ui.output_table("match_summary"))
+                        )
+                     ),
 
-    ui.layout_columns(
-        ui.card(
-            ui.output_ui("acronym_list")
-        ),
+        ui.nav_panel("Project Summaries", 
+                     ui.layout_columns(
+                         ui.card(
+                             ui.output_ui("acronym_list"),
+                             ui.output_ui("project_detail")
+                            ),
+                         ui.accordion(
+                             ui.accordion_panel("Organisations Overview",
+                                 output_widget("map"),
+                                 ui.output_table("org_summary")
+                             ),
+                             ui.accordion_panel("Funding Overview",
+                                 ui.output_ui("funding_summary")
+                            )
+                            )
+                        
+                        )
+                    ),
 
-        ui.card(
-            ui.card(ui.output_plot("pie_topic")),
-            ui.card(ui.output_plot("boxplot_funding"))
-        ),
-
-        col_widths=(4, 8)
-    ),
-
-    ui.output_ui("project_detail"),
-
-    title="Horizon Europe Project Recommender",
-    
+        ui.nav_panel("Funding Mechanisms",
+                     ui.card(
+                         ui.output_plot("pie_topic"),
+                         ui.output_plot("boxplot_funding")
+                         )
+                    ),
+                    
+        id="tab",
+    )  
 )
+
 
 # Server
 def server(input, output, session):
@@ -58,6 +81,143 @@ def server(input, output, session):
         match_df.sort_values("similarity", ascending=False, inplace=True)
 
         matches.set(match_df)
+
+    # helper function to get project organisations (used in map rendering)
+    def get_project_orgs(acronym):
+        df = matches.get()
+        orgs = []
+
+        if not acronym:
+            return pd.DataFrame()
+
+        row = df[df["acronym"] == acronym].iloc[0]
+
+        role_columns = ["coordinator", "participant", "thirdParty", "associatedPartner"]
+
+        for role in role_columns:
+            
+            raw = row.get(role, [])
+            if isinstance(raw, str):
+                try:
+                    ids = ast.literal_eval(raw)
+                except Exception:
+                    ids = []
+            else:
+                ids = raw
+            
+            if isinstance(ids, list):
+                for org_id in ids:
+                    orgs.append({"organisationID": org_id, "role": role})
+        org_df = pd.DataFrame(orgs)
+
+        # Merge with org_data to get name and location
+        result = org_df.merge(org_data, on="organisationID", how="left")
+        return result
+
+    # Output the project match summary (Acronym & Title)
+    @render.table
+    def match_summary():
+        df = matches.get()
+        if df.empty:
+            return pd.DataFrame({"Similar Projects": ["No results yet. Please enter a proposal."]})
+        
+        return df[["acronym", "title"]].copy()
+
+    # Output the acronym list
+    @render.ui
+    def acronym_list():
+        df = matches.get()
+        if df.empty or "acronym" not in df.columns:
+            return ui.p("No results yet.")
+
+        options = df["acronym"].dropna().unique().tolist()
+        return ui.input_select("selected_project", "Select a project acronym:", choices=options)
+    
+    # Output the project detail
+    @render.ui
+    def project_detail():
+        df = matches.get()
+        selected = input.selected_project()
+        if not selected:
+            return ui.p("Select a project to view details.")
+
+        row = df[df["acronym"] == selected].iloc[0]
+
+        return ui.panel_well(
+            ui.h4(row["title"]),
+            ui.p(f"Objective: {row['objective']}"),
+    
+        )
+
+    # Output the map
+    @render_widget  
+    def map():
+        acronym = input.selected_project()
+
+        if not acronym:
+            return Map(center=(50, 10), zoom=4)
+
+        orgs = get_project_orgs(acronym)
+        m = Map(center=(50, 10), zoom=4)
+        
+        icon = Icon(
+            icon_url='https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+            icon_size=[25, 41],
+            icon_anchor=[12, 41]
+        )
+
+        for _, row in orgs.iterrows():
+            if pd.isna(row["geolocation"]):
+                continue
+            
+            if row['role'] == "coordinator":
+                marker = Marker(
+                    icon = icon,
+                    location=(row["latitude"], row["longitude"]),
+                    title=f"{row['name']} ({row['role']})",
+                    draggable=False
+                )
+
+            else:
+                marker = Marker(
+                    location=(row["latitude"], row["longitude"]),
+                    title=f"{row['name']} ({row['role']})",
+                    draggable=False
+                )
+            
+            m.add(marker)
+            marker.popup = HTML(f"<strong>{row['name']}</strong><br>{row['role']}")
+
+        return m
+
+    @render.table
+    def org_summary():
+        acronym = input.selected_project()
+        if not acronym:
+            return ui.p("No project selected.")
+
+        df = get_project_orgs(acronym)
+        if df.empty:
+            return ui.p("No organisations found.")
+
+        return df[["name", "role"]].copy().reset_index(drop=True)
+
+
+    # Output the project funding summary
+    @render.ui
+    def funding_summary():
+        df = matches.get()
+        selected = input.selected_project()
+        if not selected:
+            return ui.p("Select a project to view details.")
+
+        row = df[df["acronym"] == selected].iloc[0]
+
+        return ui.panel_well(
+            ui.p(f"Total cost: €{row['ecMaxContribution']:,.0f}"),
+            ui.p(f"Funding Scheme: {row['title_topic']}"),
+            ui.p(f"Framework Programme: {row['title_legal']}")
+        )
 
     # Output the boxplot
     @render.plot
@@ -85,36 +245,6 @@ def server(input, output, session):
         plt.ylabel("")
         plt.title("Grants awarded by")
         return plt.gcf()
-
-    # Output the acronym list
-    @render.ui
-    def acronym_list():
-        df = matches.get()
-        if df.empty or "acronym" not in df.columns:
-            return ui.p("No results yet.")
-
-        options = df["acronym"].dropna().unique().tolist()
-        return ui.input_select("selected_project", "Select a project acronym:", choices=options)
-
-    # Output the project detail
-    @render.ui
-    def project_detail():
-        df = matches.get()
-        selected = input.selected_project()
-        if not selected:
-            return ui.p("Select a project to view details.")
-
-        row = df[df["acronym"] == selected].iloc[0]
-
-        return ui.panel_well(
-            ui.h4(row["title"]),
-            ui.p(f"Objective: {row['objective']}"),
-            ui.p(f"Funding Scheme: {row['fundingScheme']}"),
-            ui.p(f"Total Cost: €{row['totalCost']:,.0f}"),
-            ui.p(f"Start: {row['startDate']} | End: {row['endDate']}"),
-            ui.p(f"Participants: {row['n_organisations']}")
-        )
-
 
 # App
 app = App(app_ui, server)
