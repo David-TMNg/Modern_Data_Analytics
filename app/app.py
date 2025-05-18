@@ -44,13 +44,20 @@ app_ui = ui.page_fluid(
                         
                         )
                     ),
+        ui.nav_panel("Organisation Profile",
+                     ui.card(
+
+                         )
+                    ),
+
 
         ui.nav_panel("Funding Mechanisms",
                      ui.card(
                          ui.output_plot("pie_topic"),
-                         ui.output_plot("boxplot_funding")
-                         )
-                    ),
+                         ui.output_ui("funding_list"),
+                         ui.output_ui("funding_detail")
+                    )
+        ),
                     
         id="tab",
     )  
@@ -146,6 +153,8 @@ def server(input, output, session):
         return ui.panel_well(
             ui.h4(row["title"]),
             ui.p(f"Objective: {row['objective']}"),
+            ui.a("View full project on CORDIS", href=row["cordis_project_url"], target="_blank")
+
     
         )
 
@@ -200,8 +209,7 @@ def server(input, output, session):
         if df.empty:
             return ui.p("No organisations found.")
 
-        return df[["name", "role"]].copy().reset_index(drop=True)
-
+        return df[["name", "role", "country"]].copy().reset_index(drop=True)
 
     # Output the project funding summary
     @render.ui
@@ -214,9 +222,10 @@ def server(input, output, session):
         row = df[df["acronym"] == selected].iloc[0]
 
         return ui.panel_well(
-            ui.p(f"Total cost: €{row['ecMaxContribution']:,.0f}"),
-            ui.p(f"Funding Scheme: {row['title_topic']}"),
-            ui.p(f"Framework Programme: {row['title_legal']}")
+            ui.p(f"Total Funding: €{row['ecMaxContribution']:,.0f}"),
+            ui.p(f"Average Annual Funding per Participant: €{row['avg_annual_funding_per_participant']:,.0f}"),
+            ui.p(f"Funding Scheme: {row['funding_id']}"),
+            ui.p(f"{row['title_topic']}")
         )
 
     # Output the boxplot
@@ -245,6 +254,37 @@ def server(input, output, session):
         plt.ylabel("")
         plt.title("Grants awarded by")
         return plt.gcf()
+
+    # Output the acronym list
+    @render.ui
+    def funding_list():
+        df = matches.get()
+        if df.empty or "title_topic" not in df.columns:
+            return ui.p("No results yet.")
+
+        options = df["title_topic"].dropna().unique().tolist()
+
+        return ui.input_select("selected_funding", "Select a funding scheme:",
+                                         choices=options)
+
+    # Output the funding detail
+    @render.ui
+    def funding_detail():
+        df = matches.get()
+        selected = input.selected_funding()
+        if not selected:
+            return ui.p("Select a funding scheme to view details.")
+
+        row = df[df["title_topic"] == selected].iloc[0]
+
+        return ui.panel_well(
+            ui.h4(row["title_topic"]),
+            ui.HTML(row['topic_objective']),
+            ui.p(""),
+            ui.a("View full project on CORDIS", href=row["cordis_funding_url"], target="_blank")
+
+    
+        )
 
 # App
 app = App(app_ui, server)
