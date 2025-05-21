@@ -43,6 +43,22 @@ ORDER = "order"
 ROLE = "role"
 EC_CONTRIBUTION = "ecContribution"
 NET_EC_CONTRIBUTION = "netEcContribution"
-TOTAL_COST = "totalCost"
 END_OF_PARTICIPATION = "endOfParticipation"
 ACTIVE = "active"
+
+# SciVoc Data
+
+EURO_SCIVOC_CODE = "euroSciVocCode"
+EURO_SCIVOC_PATH = "euroSciVocPath"
+EURO_SCIVOC_TITLE = "euroSciVocTitle"
+EURO_SCIVOC_DESCRIPTION = "euroSciVocDescription"
+
+# Topic data
+
+TOPIC = "topic"
+TITLE_TOPIC = "title_topic"
+
+# Legal basis data
+
+UNIQUE_PROGRAMME_PART = "uniqueProgrammePart"
+TITLE_LEGAL = "title_legal"
