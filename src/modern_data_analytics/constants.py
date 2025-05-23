@@ -46,19 +46,47 @@ NET_EC_CONTRIBUTION = "netEcContribution"
 END_OF_PARTICIPATION = "endOfParticipation"
 ACTIVE = "active"
 
-# SciVoc Data
+# Programme data
+OBJECTIVE = "objective"
+
+# SciVoc ata
 
 EURO_SCIVOC_CODE = "euroSciVocCode"
 EURO_SCIVOC_PATH = "euroSciVocPath"
 EURO_SCIVOC_TITLE = "euroSciVocTitle"
 EURO_SCIVOC_DESCRIPTION = "euroSciVocDescription"
+SCIVOC_TOPICS = "sciVocTopics"
 
 # Topic data
 
-TOPIC = "topic"
 TITLE_TOPIC = "title_topic"
+TOPIC = "topic"
 
 # Legal basis data
-
-UNIQUE_PROGRAMME_PART = "uniqueProgrammePart"
 TITLE_LEGAL = "title_legal"
+UNIQUE_PROGRAMME_PART = "uniqueProgrammePart"
+
+# Legal summary
+N_TITLE_LEGALS = "n_title_legals"
+
+# Org summary
+N_PROJECTS = "n_projects"
+PROJECTS = "projects"
+
+# Project roles summary
+COORDINATOR = "coordinator"
+PARTICIPANT = "participant"
+THIRD_PARTY = "thirdParty"
+ASSOCIATED_PARTNER = "associatedPartner"
+
+N_ORGANISATIONS = "n_organisations"
+
+# Full project merge
+AVG_ANNUAL_FUNDING_PER_PARTICIPANT = "avg_annual_funding_per_participant"
+AVG_FUNDING_PER_PARTICIPANT = "avg_funding_per_participant"
+CORDIS_FUNDING_URL = "cordis_funding_url"
+CORDIS_PROJECT_URL = "cordis_project_url"
+DURATION_YEARS = "duration_years"
+FUNDING_ID = "funding_id"
+ID = "id"
+TOPIC_OBJECTIVE = "topic_objective"
