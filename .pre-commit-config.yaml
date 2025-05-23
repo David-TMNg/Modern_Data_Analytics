@@ -17,3 +17,10 @@ repos:
       language: system
       types: [ python ]
       args: ['format', '--config', 'pyproject.toml']
+    
+    - id: mypy
+      name: mypy
+      entry: mypy
+      description: static type checker for python
+      language: system
+      types: [ python ]

@@ -7,6 +7,7 @@ name = "modern-data-analytics"
 version = "1.0.0"
 
 dependencies = [
+  "ipyleaflet==0.19.2",
   "loguru==0.7.3",
   "matplotlib==3.10.3",
   "numpy==2.2.5",
@@ -15,6 +16,8 @@ dependencies = [
   "seaborn==0.13.2",
   "scikit-learn==1.6.1",
   "sentence-transformers==4.1.0",
+  "shiny==1.4.0",
+  "shinywidgets==0.5.2",
   "torch==2.7.0",
 ]
 
@@ -71,3 +74,6 @@ quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
+
+[tool.mypy]
+ignore_missing_imports = true
