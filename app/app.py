@@ -32,9 +32,10 @@ app_ui = ui.page_fluid(
                     ui.input_slider("top_n", "Number of results to display:", min=10, max=20, value=10),
                     ui.input_action_button("submit", "Find Matching Projects"),
                 ),
-                ui.card(ui.output_table("match_summary")),
-            ),
+                ui.card(ui.output_table("match_summary"))
+            )
         ),
+
         ui.nav_panel(
             "Project Summaries",
             ui.layout_columns(
@@ -42,10 +43,17 @@ app_ui = ui.page_fluid(
                 ui.accordion(
                     ui.accordion_panel("Organisations Overview", output_widget("map"), ui.output_table("org_summary")),
                     ui.accordion_panel("Funding Overview", ui.output_ui("funding_summary")),
-                ),
-            ),
+                )
+            )
         ),
-        ui.nav_panel("Organisation Profile", ui.card()),
+
+        ui.nav_panel("Organisation Profile", 
+            ui.layout_columns(
+                ui.card(ui.output_ui("org_profile_acronym_list"),ui.output_ui("org_profile_org_list"),ui.output_ui("org_profile_summary")),
+                ui.card(output_widget("org_profile_map"))
+            )
+        ),
+
         ui.nav_panel(
             "Funding Mechanisms",
             ui.card(ui.output_plot("pie_topic"), ui.output_ui("funding_list"), ui.output_ui("funding_detail")),
@@ -79,7 +87,7 @@ def server(input, output, session):
 
         matches.set(match_df)
 
-    # helper function to get project organisations (used in map rendering)
+    # helper function to get project organisations from an acronym (used in map rendering)
     def get_project_orgs(acronym):
         df = matches.get()
         orgs = []
@@ -215,18 +223,79 @@ def server(input, output, session):
             ui.p(f"{row['title_topic']}"),
         )
 
-    # Output the boxplot
-    @render.plot
-    def boxplot_funding():
+    @render.ui
+    def org_profile_acronym_list():
         df = matches.get()
-        if df.empty:
-            return
+        if df.empty or "acronym" not in df.columns:
+            return ui.p("Submit a proposal first.")
+            
+        options = df["acronym"].dropna().unique().tolist()
+        return ui.input_select("org_selected_acronym", "Select a project acronym:", choices=options)
 
-        plt.figure(figsize=(6, 2))
-        sns.boxplot(x=df["ecMaxContribution"] / 1e6)
-        plt.title("Project Funding")
-        plt.xlabel("Funding in millions€")
-        return plt.gcf()
+    @render.ui
+    def org_profile_org_list():
+        acronym = input.org_selected_acronym()
+        if not acronym:
+            return ui.p("Select a project acronym first.")
+
+        df = get_project_orgs(acronym)
+        if df.empty:
+            return ui.p("No organisations found for that project.")
+
+        options = {str(row["organisationID"]): row["name"] for _, row in df.iterrows()}
+        return ui.input_select("org_selected_id", "Select an organisation:", choices=options)
+
+    @render.ui
+    def org_profile_summary():
+        org_id = input.org_selected_id()
+        if not org_id:
+            return ui.p("Select an organisation.")
+
+        org_id = int(org_id)
+        row = org_data[org_data["organisationID"] == org_id]
+        if row.empty:
+            return ui.p("Organisation not found.")
+
+        row = row.iloc[0]
+
+        content = [
+            ui.h4(row["name"]),
+            ui.p(f"Projects involved: {int(row['n_projects'])}"),
+            ui.p(f"Total funding: €{row['totalCost']:,.0f}")
+        ]
+
+        if pd.notna(row["organizationURL"]) and row["organizationURL"].strip():
+            content.append(
+                ui.a("Organisation Website", href=row["organizationURL"], target="_blank")
+            )
+
+        return ui.panel_well(*content)
+
+    @render_widget
+    def org_profile_map():
+        org_id = input.org_selected_id()
+        if not org_id:
+            return Map(center=(50, 10), zoom=3)
+
+        org_id = int(org_id)
+        row = org_data[org_data["organisationID"] == org_id]
+        if row.empty or pd.isna(row.iloc[0]["latitude"]) or pd.isna(row.iloc[0]["longitude"]):
+            return Map(center=(50, 10), zoom=3)
+
+        row = row.iloc[0]
+        lat, lon = row["latitude"], row["longitude"]
+
+        m = Map(center=(lat, lon), zoom=5)
+
+        marker = Marker(
+            location=(lat, lon),
+            title=row["name"],
+            draggable=False
+        )
+        marker.popup = HTML(f"<strong>{row['name']}</strong><br>{row['city']}, {row['country']}")
+        m.add(marker)
+
+        return m
 
     # Output the pie chart
     @render.plot
