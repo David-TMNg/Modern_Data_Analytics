@@ -26,8 +26,8 @@ jobs:
           git clone --branch main https://github.com/David-TMNg/Modern_Data_Analytics.git
           cd Modern_Data_Analytics
 
-          docker stop shiny-app || true
-          docker rm shiny-app || true
+          docker stop shiny-python-app || true
+          docker rm shiny-python-app || true
           docker build -t shiny-python-app .
           docker run -d --name shiny-app -p 80:8000 shiny-python-app
         EOF
