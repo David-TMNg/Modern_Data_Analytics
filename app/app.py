@@ -28,6 +28,18 @@ app_ui = ui.page_fluid(
             "Proposal Match",
             ui.layout_columns(
                 ui.card(
+                    ui.h2("Welcome to the Horizon Europe Proposal Matcher"),
+                    ui.p(
+                        "By sharing your proposal, we can help you find similar projects that have already been funded by the European Union."
+                        "You can use the tabs above to"
+                    ),
+                    ui.HTML("""
+                        <ul>
+                        <li>view individual project details</li>
+                        <li>discover potential collaboators</li>
+                        <li>explore funding mechanisms</li>
+                        </ul>
+                        """),
                     ui.input_text_area("proposal", "Enter your research proposal:", rows=6),
                     ui.input_slider("top_n", "Number of results to display:", min=10, max=20, value=10),
                     ui.input_action_button("submit", "Find Matching Projects"),
@@ -308,7 +320,7 @@ def server(input, output, session):
         plt.figure(figsize=(6, 6))
         topic_counts.plot.pie(startangle=90, textprops={"fontsize": 10})
         plt.ylabel("")
-        plt.title("Grants awarded by")
+        plt.title("Similar projects funded by")
         return plt.gcf()
 
     # Output the acronym list
