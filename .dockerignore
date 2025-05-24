@@ -1,0 +1,5 @@
+.git
+data/raw/
+.mypy_cache/
+notebooks/
+.ruff_cache/
