@@ -41,6 +41,7 @@ from modern_data_analytics.constants import (
     SME,
     START_DATE,
     THIRD_PARTY,
+    TITLE,
     TITLE_LEGAL,
     TITLE_TOPIC,
     TOPIC_OBJECTIVE,
@@ -329,3 +330,22 @@ def merge_full_df_with_programme(full_df: pd.DataFrame, programme_df: pd.DataFra
     full_merged_df = full_df.merge(programme_df, on=FUNDING_ID, how="left")
 
     return full_merged_df
+
+
+def format_input_text(full_df: pd.DataFrame) -> pd.Series:
+    """
+    Format input text for recommender training by combining title, objective, and SciVoc topics
+    Args:
+        full_df (pd.DataFrame): Full preprocessed DataFrame
+    Returns:
+        pd.Series: Series containing formatted input text for each project
+    """
+
+    input_text = (
+        full_df[TITLE].fillna("")
+        + " "
+        + full_df[OBJECTIVE].fillna("")
+        + " "
+        + full_df[SCIVOC_TOPICS].apply(lambda x: " ".join(x) if isinstance(x, list) else "")
+    )
+    return input_text
